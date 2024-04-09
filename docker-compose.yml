@@ -1,0 +1,7 @@
+services:
+  notification-service:
+    build: .
+    ports:
+      - "3003:3003"
+    volumes:
+      - ./:/app
