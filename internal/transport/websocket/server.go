@@ -2,16 +2,29 @@ package websocket
 
 import (
 	"net/http"
+
+	"github.com/Alieksieiev0/notification-service/internal/services"
+	"github.com/gofiber/contrib/websocket"
+	"github.com/gofiber/fiber/v2"
 )
 
-const (
-	subscriptionTopic = "subscriptions"
-	postTopic         = "posts"
-)
+type WebsocketServer struct {
+	app  *fiber.App
+	addr string
+}
 
-func Start(addr string, kafkaAddr string) error {
-	http.HandleFunc("/notifications/posts", sendNotifications(postTopic, kafkaAddr))
-	http.HandleFunc("/notifications/subscriptions", sendNotifications(subscriptionTopic, kafkaAddr))
+func (ws *WebsocketServer) Start(serv services.Service, trans Transferer) error {
+	ws.app.Use(func(c *fiber.Ctx) error {
+		if websocket.IsWebSocketUpgrade(c) {
+			// test with false
+			c.Locals("allowed", true)
+			if err := c.Next(); err != nil {
+				return err
+			}
+		}
+		return fiber.ErrUpgradeRequired
+	})
+	ws.app.Get("/notifications/:notifyId", websocket.New(getNotificationsHandler(serv, trans)))
 
-	return http.ListenAndServe(addr, nil)
+	return http.ListenAndServe(ws.addr, nil)
 }

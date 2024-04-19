@@ -1,23 +1,38 @@
 package websocket
 
 import (
+	"context"
 	"log"
-	"net/http"
 
-	"github.com/Alieksieiev0/notification-service/internal/transport/kafka"
-	"github.com/gorilla/websocket"
+	"github.com/Alieksieiev0/notification-service/internal/services"
+	"github.com/gofiber/contrib/websocket"
+	"github.com/gofiber/fiber/v2"
 )
 
-var upgrader = websocket.Upgrader{}
-
-func sendNotifications(topic string, addr string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		c, err := upgrader.Upgrade(w, r, nil)
+func getNotificationsHandler(serv services.Service, trans Transferer) func(*websocket.Conn) {
+	return func(c *websocket.Conn) {
+		notifyId := c.Params("notifyId")
+		notifications, err := serv.GetByNotifyId(context.Background(), notifyId)
 		if err != nil {
-			log.Print("upgrade:", err)
+			if err = c.WriteJSON(fiber.Map{"error": err.Error()}); err != nil {
+				log.Println(err.Error())
+			}
 			return
 		}
-		defer c.Close()
-		kafka.Consume(c, topic, addr)
+
+		if err = c.WriteJSON(notifications); err != nil {
+			log.Println(err.Error())
+			return
+		}
+
+		trans.AddConnection(c, notifyId)
+
+		for {
+			_, _, err := c.ReadMessage()
+			if err != nil {
+				log.Println(err)
+				return
+			}
+		}
 	}
 }
