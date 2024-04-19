@@ -9,22 +9,21 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func getNotificationsHandler(serv services.Service, trans Transferer) func(*websocket.Conn) {
-	return func(c *websocket.Conn) {
+func getNotificationsHandler(serv services.Service) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 		notifyId := c.Params("notifyId")
 		notifications, err := serv.GetByNotifyId(context.Background(), notifyId)
 		if err != nil {
-			if err = c.WriteJSON(fiber.Map{"error": err.Error()}); err != nil {
-				log.Println(err.Error())
-			}
-			return
+			c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		if err = c.WriteJSON(notifications); err != nil {
-			log.Println(err.Error())
-			return
-		}
+		return c.Status(fiber.StatusOK).JSON(notifications)
+	}
+}
 
+func listenHandler(trans Transferer) func(*websocket.Conn) {
+	return func(c *websocket.Conn) {
+		notifyId := c.Params("notifyId")
 		trans.AddConnection(c, notifyId)
 
 		for {

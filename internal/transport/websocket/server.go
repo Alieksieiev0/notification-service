@@ -1,7 +1,7 @@
 package websocket
 
 import (
-	"net/http"
+	"fmt"
 
 	"github.com/Alieksieiev0/notification-service/internal/services"
 	"github.com/gofiber/contrib/websocket"
@@ -13,8 +13,17 @@ type WebsocketServer struct {
 	addr string
 }
 
+func NewServer(app *fiber.App, addr string) *WebsocketServer {
+	return &WebsocketServer{
+		app:  app,
+		addr: addr,
+	}
+}
+
 func (ws *WebsocketServer) Start(serv services.Service, trans Transferer) error {
-	ws.app.Use(func(c *fiber.Ctx) error {
+	go trans.Run()
+	fmt.Println("1111")
+	ws.app.Use("/listen", func(c *fiber.Ctx) error {
 		if websocket.IsWebSocketUpgrade(c) {
 			// test with false
 			c.Locals("allowed", true)
@@ -24,7 +33,10 @@ func (ws *WebsocketServer) Start(serv services.Service, trans Transferer) error 
 		}
 		return fiber.ErrUpgradeRequired
 	})
-	ws.app.Get("/notifications/:notifyId", websocket.New(getNotificationsHandler(serv, trans)))
+	fmt.Println("teeeest")
+	ws.app.Get("/notifications/:notifyId", getNotificationsHandler(serv))
+	fmt.Println("teeeest")
+	ws.app.Get("/listen/:notifyId", websocket.New(listenHandler(trans)))
 
-	return http.ListenAndServe(ws.addr, nil)
+	return ws.app.Listen(ws.addr)
 }
