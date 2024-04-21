@@ -25,12 +25,12 @@ func (b *Base) BeforeCreate(tx *gorm.DB) (err error) {
 
 type Notification struct {
 	Base
-	NotifyId string `gorm:"type:uuid"`
-	FromId   string `gorm:"type:uuid"`
-	FromName string
-	TargetId *string `gorm:"type:uuid"`
-	Type     string
-	Status   string
+	NotifyId string  `json:"notify_id" gorm:"type:uuid"`
+	FromId   string  `json:"from_id"   gorm:"type:uuid"`
+	FromName string  `json:"from_name"`
+	TargetId *string `json:"target_id" gorm:"type:uuid"`
+	Type     string  `json:"type"`
+	Status   string  `json:"status"`
 }
 
 func (n *Notification) BeforeCreate(tx *gorm.DB) (err error) {

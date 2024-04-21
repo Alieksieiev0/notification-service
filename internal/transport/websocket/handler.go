@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"strconv"
 
@@ -32,6 +33,7 @@ func getNotificationsHandler(serv services.Service) fiber.Handler {
 		}
 
 		notifications, err := serv.Get(context.Background(), params...)
+		fmt.Printf("%+v", notifications)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
