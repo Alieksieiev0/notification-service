@@ -2,13 +2,14 @@ package services
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Alieksieiev0/notification-service/internal/models"
 	"gorm.io/gorm"
 )
 
 type Service interface {
-	GetByNotifyId(c context.Context, id string) ([]models.Notification, error)
+	Get(c context.Context, params ...Param) ([]models.Notification, error)
 	Save(c context.Context, notification *models.Notification) error
 }
 
@@ -22,11 +23,45 @@ type service struct {
 	db *gorm.DB
 }
 
-func (ns *service) GetByNotifyId(c context.Context, id string) ([]models.Notification, error) {
+func (s *service) Get(c context.Context, params ...Param) ([]models.Notification, error) {
 	notifications := []models.Notification{}
-	return notifications, ns.db.Find(&notifications, "notify_id = ?", id).Error
+	db := ApplyParams(s.db, params...)
+	return notifications, db.Find(&notifications).Error
 }
 
-func (ns *service) Save(c context.Context, notification *models.Notification) error {
-	return ns.db.Save(notification).Error
+func (s *service) Save(c context.Context, notification *models.Notification) error {
+	return s.db.Save(notification).Error
+}
+
+type Param func(db *gorm.DB) *gorm.DB
+
+func Limit(limit int) Param {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Limit(limit)
+	}
+}
+
+func Offset(offset int) Param {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Offset(offset)
+	}
+}
+
+func Filter(name string, value string, isStrict bool) Param {
+	return func(db *gorm.DB) *gorm.DB {
+		if isStrict {
+			return db.Where(name+"= ?", value)
+		}
+		return db.Where(
+			fmt.Sprintf("LOWER(%s) LIKE LOWER(?)", name),
+			fmt.Sprintf("%%%s%%", value),
+		)
+	}
+}
+
+func ApplyParams(db *gorm.DB, params ...Param) *gorm.DB {
+	for _, param := range params {
+		db = param(db)
+	}
+	return db
 }

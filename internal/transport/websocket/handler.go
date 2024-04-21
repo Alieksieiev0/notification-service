@@ -3,6 +3,7 @@ package websocket
 import (
 	"context"
 	"log"
+	"strconv"
 
 	"github.com/Alieksieiev0/notification-service/internal/services"
 	"github.com/gofiber/contrib/websocket"
@@ -11,10 +12,28 @@ import (
 
 func getNotificationsHandler(serv services.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		notifyId := c.Params("notifyId")
-		notifications, err := serv.GetByNotifyId(context.Background(), notifyId)
+		var params []services.Param
+		params = append(params, services.Filter("notify_id", c.Params("notifyId"), true))
+		limit, err := strconv.Atoi(c.Query("limit", "10"))
 		if err != nil {
-			c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
+		params = append(params, services.Limit(limit))
+
+		offset, err := strconv.Atoi(c.Query("offset", "0"))
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
+		params = append(params, services.Limit(offset))
+
+		status := c.Query("status")
+		if status != "" {
+			params = append(params, services.Filter("status", status, true))
+		}
+
+		notifications, err := serv.Get(context.Background(), params...)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
 
 		return c.Status(fiber.StatusOK).JSON(notifications)
