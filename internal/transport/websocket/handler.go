@@ -5,10 +5,15 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 
 	"github.com/Alieksieiev0/notification-service/internal/services"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
+)
+
+const (
+	timeout = 60
 )
 
 func getNotificationsHandler(serv services.Service) fiber.Handler {
@@ -48,11 +53,17 @@ func listenHandler(trans Transferer) func(*websocket.Conn) {
 		trans.AddConnection(c, notifyId)
 
 		for {
-			_, _, err := c.ReadMessage()
+			err := c.WriteMessage(websocket.PingMessage, []byte("keepalive"))
 			if err != nil {
-				log.Println(err)
+				log.Printf("error: %v", err)
 				return
 			}
+			d, err := time.ParseDuration(fmt.Sprint(timeout/2) + "s")
+			if err != nil {
+				log.Printf("error: %v", err)
+				return
+			}
+			time.Sleep(d)
 		}
 	}
 }

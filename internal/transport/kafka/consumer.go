@@ -60,6 +60,7 @@ func (c *consumer) Consume(serv services.Service, trans websocket.Transferer) er
 			break
 		}
 		n.NotifyId = string(m.Key)
+		fmt.Printf("test: %+v\n", n)
 		err = serv.Save(context.Background(), n)
 		if err != nil {
 			fmt.Println(err)
