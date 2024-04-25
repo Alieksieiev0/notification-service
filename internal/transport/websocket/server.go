@@ -22,14 +22,13 @@ func (ws *WebsocketServer) Start(serv services.Service, trans Transferer) error 
 	go trans.Run()
 	ws.app.Use("/listen", func(c *fiber.Ctx) error {
 		if websocket.IsWebSocketUpgrade(c) {
-			// test with false
-			c.Locals("allowed", true)
 			return c.Next()
 		}
 		return fiber.ErrUpgradeRequired
 	})
 
 	ws.app.Get("/notifications/:notifyId", getNotificationsHandler(serv))
+	ws.app.Put("/review/:id", reviewHandler(serv))
 	ws.app.Get("/listen/:notifyId", websocket.New(listenHandler(trans)))
 
 	return ws.app.Listen(ws.addr)

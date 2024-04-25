@@ -47,12 +47,10 @@ func (c *consumer) Consume(serv services.Service, trans websocket.Transferer) er
 
 	for {
 		m, err := r.ReadMessage(context.Background())
-		fmt.Println("-----waiting message------")
 		if err != nil {
 			fmt.Println(err)
 			break
 		}
-		fmt.Println("-----received message------")
 
 		n := &models.Notification{}
 		err = json.Unmarshal(m.Value, &n)
@@ -60,16 +58,13 @@ func (c *consumer) Consume(serv services.Service, trans websocket.Transferer) er
 			break
 		}
 		n.NotifyId = string(m.Key)
-		fmt.Printf("test: %+v\n", n)
+
 		err = serv.Save(context.Background(), n)
 		if err != nil {
 			fmt.Println(err)
 		}
 
-		fmt.Printf("message at offset %d: %s = %s\n", m.Offset, string(m.Key), string(m.Value))
-		fmt.Println("-----before pass------")
 		go trans.Pass(n)
-		fmt.Println("-----afer pass------")
 	}
 
 	return r.Close()

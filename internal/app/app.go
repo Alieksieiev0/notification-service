@@ -2,7 +2,6 @@ package app
 
 import (
 	"flag"
-	"fmt"
 	"log"
 
 	"github.com/Alieksieiev0/notification-service/internal/config"
@@ -49,7 +48,6 @@ func Run() {
 	})
 
 	if err := g.Wait(); err != nil {
-		fmt.Println("----------------")
 		log.Fatal(err)
 	}
 }

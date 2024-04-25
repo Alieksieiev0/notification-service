@@ -7,7 +7,8 @@ import (
 	"gorm.io/gorm"
 )
 
-const newNotificationStatus = "NEW"
+const NewNotificationStatus = "NEW"
+const ReviewedNoificationStatus = "REVIEWED"
 
 type Base struct {
 	ID        string         `gorm:"type:uuid" json:"id"`
@@ -28,12 +29,12 @@ type Notification struct {
 	NotifyId string  `json:"notify_id" gorm:"type:uuid"`
 	FromId   string  `json:"from_id"   gorm:"type:uuid"`
 	FromName string  `json:"from_name"`
-	TargetId *string `json:"target_id" gorm:"type:uuid"`
+	TargetId *string `json:"target_id" gorm:"type:uuid;"`
 	Type     string  `json:"type"`
 	Status   string  `json:"status"`
 }
 
 func (n *Notification) BeforeCreate(tx *gorm.DB) (err error) {
-	n.Status = newNotificationStatus
+	n.Status = NewNotificationStatus
 	return n.Base.BeforeCreate(tx)
 }

@@ -1,8 +1,6 @@
 package websocket
 
 import (
-	"fmt"
-
 	"github.com/Alieksieiev0/notification-service/internal/models"
 	"github.com/gofiber/contrib/websocket"
 )
@@ -28,15 +26,12 @@ type transferer struct {
 func (w *transferer) Run() {
 	for {
 		msg := <-w.notification
-		fmt.Printf("msg: %+v", msg)
 		c, ok := w.connections[msg.NotifyId]
-		fmt.Println(ok)
 		if !ok {
 			continue
 		}
 
 		if err := c.WriteJSON(msg); err != nil {
-			fmt.Println(err)
 			delete(w.connections, msg.NotifyId)
 		}
 	}
