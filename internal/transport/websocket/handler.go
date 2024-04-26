@@ -60,24 +60,22 @@ func getNotificationsHandler(serv services.Service) fiber.Handler {
 func reviewHandler(serv services.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
-		fmt.Println("----------")
 		id := c.Params("id")
-		user, err := serv.GetById(
+		notification, err := serv.GetById(
 			c.Context(),
 			id,
-			services.Filter("status", models.NewNotificationStatus, true),
+			//services.Filter("status", models.NewNotificationStatus, true),
 		)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
-		user.Status = models.ReviewedNoificationStatus
+		notification.Status = models.ReviewedNoificationStatus
 
-		err = serv.Save(context.Background(), user)
+		err = serv.Save(context.Background(), notification)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		fmt.Println("----------")
 		c.Status(fiber.StatusOK)
 		return nil
 	}
