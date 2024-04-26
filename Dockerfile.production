@@ -8,5 +8,5 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o /feed-service cmd/feed-service/main.go
-CMD ["/feed-service"]
+RUN go build -o /notification-service cmd/notification-service/main.go
+CMD ["/notification-service"]
