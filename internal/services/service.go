@@ -41,7 +41,7 @@ func (s *service) GetById(
 }
 
 func (s *service) Save(c context.Context, notification *models.Notification) error {
-	if *notification.TargetId == "" {
+	if notification.TargetId != nil && *notification.TargetId == "" {
 		notification.TargetId = nil
 	}
 	return s.db.Save(notification).Error
