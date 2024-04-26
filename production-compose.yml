@@ -1,10 +1,11 @@
 services:
   notification-service:
-    build: .
+    build:
+      dockerfile: Dockerfile.production
     ports:
       - "3002:3002"
-    volumes:
-      - ./:/app
+    depends_on:
+      - notification-db
 
   notification-db:
     image: postgres

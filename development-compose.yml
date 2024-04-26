@@ -1,0 +1,28 @@
+services:
+  notification-service:
+    build: 
+      dockerfile: Dockerfile.development
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./:/app
+    depends_on:
+      - notification-db
+
+  notification-db:
+    image: postgres
+    volumes:
+      - notification-data:/var/lib/postgresql
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+    environment:
+      - POSTGRES_HOST=${DB_HOST}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_PORT=${DB_PORT}
+      - POSTGRES_DB=${DB_NAME}
+    command: -p ${DB_PORT}
+
+
+volumes:
+  notification-data:
